@@ -5,6 +5,7 @@ import { CURRENCY_SYMBOLS } from '../constants';
 import TrashIcon from './icons/TrashIcon';
 import EditIcon from './icons/EditIcon';
 import EditModal from './EditModal';
+import ProgressBar from './ProgressBar';
 
 interface SubscriptionCardProps {
   subscription: Subscription;
@@ -22,6 +23,25 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onDel
     day: 'numeric',
   });
 
+  // Calculate days until next payment
+  const calculateDaysUntilPayment = () => {
+    const today = new Date();
+    const nextPaymentDate = new Date(startDate + 'T00:00:00');
+    
+    // If the payment date has passed, calculate next payment based on duration
+    if (nextPaymentDate < today) {
+      const duration = subscription.duration;
+      const daysToAdd = duration === 'Monthly' ? 30 : 365;
+      nextPaymentDate.setDate(nextPaymentDate.getDate() + daysToAdd);
+    }
+    
+    const timeDiff = nextPaymentDate.getTime() - today.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    return daysDiff;
+  };
+
+  const daysUntilPayment = calculateDaysUntilPayment();
+
   const handleEdit = (updatedSubscription: Omit<Subscription, 'id'>) => {
     onEdit(id, updatedSubscription);
   };
@@ -32,7 +52,14 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onDel
         <div>
           <div className="flex justify-between items-start mb-3">
             <h3 className="text-xl font-bold text-slate-100">{name}</h3>
-            <span className="bg-emerald-500/20 text-emerald-400 text-xs font-semibold px-2.5 py-1 rounded-full">{category}</span>
+            <div className="flex items-center gap-2">
+              {daysUntilPayment <= 2 && (
+                <span className="bg-red-500/20 text-red-400 text-xs font-semibold px-2 py-1 rounded-full animate-pulse">
+                  ⚠️ Due Soon
+                </span>
+              )}
+              <span className="bg-emerald-500/20 text-emerald-400 text-xs font-semibold px-2.5 py-1 rounded-full">{category}</span>
+            </div>
           </div>
 
           <div className="space-y-3 text-sm text-slate-400 mb-4">
@@ -47,6 +74,11 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onDel
                 </a>
               </p>
             )}
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <ProgressBar daysUntilPayment={daysUntilPayment} />
           </div>
         </div>
         

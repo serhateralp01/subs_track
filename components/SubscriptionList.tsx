@@ -80,6 +80,20 @@ const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDe
   const sortedSubscriptions = React.useMemo(() => {
     const sorted = [...subscriptions];
     sorted.sort((a, b) => {
+      // Helper function to calculate days until payment
+      const getDaysUntilPayment = (subscription: Subscription) => {
+        const today = new Date();
+        const nextPaymentDate = new Date(subscription.startDate + 'T00:00:00');
+        
+        if (nextPaymentDate < today) {
+          const daysToAdd = subscription.duration === 'Monthly' ? 30 : 365;
+          nextPaymentDate.setDate(nextPaymentDate.getDate() + daysToAdd);
+        }
+        
+        const timeDiff = nextPaymentDate.getTime() - today.getTime();
+        return Math.ceil(timeDiff / (1000 * 3600 * 24));
+      };
+
       switch (sortBy) {
         case 'price-desc':
           return b.monthlyPrice - a.monthlyPrice;
@@ -89,6 +103,10 @@ const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDe
           return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
         case 'date-asc':
           return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        case 'urgency-desc':
+          return getDaysUntilPayment(a) - getDaysUntilPayment(b); // Most urgent first
+        case 'urgency-asc':
+          return getDaysUntilPayment(b) - getDaysUntilPayment(a); // Least urgent first
         case 'name-desc':
           return b.name.localeCompare(a.name);
         case 'name-asc':
@@ -172,6 +190,8 @@ const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDe
             <option value="name-desc">Name (Z-A)</option>
             <option value="price-desc">Price (High-Low)</option>
             <option value="price-asc">Price (Low-High)</option>
+            <option value="urgency-desc">Most Urgent First</option>
+            <option value="urgency-asc">Least Urgent First</option>
             <option value="date-desc">Next Bill (Newest)</option>
             <option value="date-asc">Next Bill (Oldest)</option>
           </select>
