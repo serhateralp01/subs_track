@@ -1,0 +1,5 @@
+{
+  "name": "Subscription Tracker",
+  "description": "A modern web application to track your recurring subscriptions. Easily add, view, and manage your subscriptions with details like cost, payment method, and billing cycle. The app automatically calculates monthly and annual costs for better financial planning.",
+  "requestFramePermissions": []
+}
