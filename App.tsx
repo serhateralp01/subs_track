@@ -24,21 +24,43 @@ const App: React.FC = () => {
     }
   }, [subscriptions]);
 
-  // Auto-update payment dates when component mounts
+  // Auto-update payment dates and migrate old subscriptions
   useEffect(() => {
-    const updatedSubscriptions = subscriptions.map(subscription => 
-      updatePaymentDates(subscription)
-    );
+    if (subscriptions.length === 0) return;
+    
+    const updatedSubscriptions = subscriptions.map(subscription => {
+      // Migrate old subscriptions that don't have the new fields
+      if (!subscription.nextPaymentDate || !subscription.lastPaymentDate) {
+        const startDate = subscription.startDate;
+        const nextPaymentDate = new Date(startDate);
+        
+        if (subscription.duration === 'Monthly') {
+          nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+        } else {
+          nextPaymentDate.setFullYear(nextPaymentDate.getFullYear() + 1);
+        }
+        
+        return {
+          ...subscription,
+          lastPaymentDate: startDate,
+          nextPaymentDate: nextPaymentDate.toISOString().split('T')[0],
+        };
+      }
+      
+      // Update payment dates for existing subscriptions
+      return updatePaymentDates(subscription);
+    });
     
     // Only update if there are changes
     const hasChanges = updatedSubscriptions.some((updated, index) => 
-      updated.nextPaymentDate !== subscriptions[index].nextPaymentDate
+      updated.nextPaymentDate !== subscriptions[index]?.nextPaymentDate ||
+      !subscriptions[index]?.nextPaymentDate
     );
     
     if (hasChanges) {
       setSubscriptions(updatedSubscriptions);
     }
-  }, []);
+  }, [subscriptions.length]);
 
   const addSubscription = (subscriptionData: Omit<Subscription, 'id'>) => {
     const today = new Date().toISOString().split('T')[0];
