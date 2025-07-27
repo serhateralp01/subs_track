@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Subscription } from '../types';
+import { Subscription, Currency } from '../types';
+import { CURRENCY_SYMBOLS } from '../constants';
 import SubscriptionCard from './SubscriptionCard';
 
 interface SubscriptionListProps {
@@ -11,8 +12,17 @@ interface SubscriptionListProps {
 const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDelete }) => {
   const [sortBy, setSortBy] = React.useState('name-asc');
   
-  const totalMonthly = subscriptions.reduce((sum, sub) => sum + sub.monthlyPrice, 0);
-  const totalAnnual = subscriptions.reduce((sum, sub) => sum + sub.annualPrice, 0);
+  // Calculate totals by currency
+  const totalsByCurrency = subscriptions.reduce((acc, sub) => {
+    if (!acc[sub.currency]) {
+      acc[sub.currency] = { monthly: 0, annual: 0 };
+    }
+    acc[sub.currency].monthly += sub.monthlyPrice;
+    acc[sub.currency].annual += sub.annualPrice;
+    return acc;
+  }, {} as Record<Currency, { monthly: number; annual: number }>);
+
+  const currencyEntries = Object.entries(totalsByCurrency);
 
   const sortedSubscriptions = React.useMemo(() => {
     const sorted = [...subscriptions];
@@ -39,16 +49,26 @@ const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDe
   return (
     <div>
       <div className="bg-slate-800 p-4 rounded-xl shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center sticky top-4 z-10 backdrop-blur-sm bg-slate-800/80 gap-4">
-        <div className="flex justify-around items-center w-full md:w-auto gap-4">
-            <div>
-              <h4 className="text-slate-400 text-sm font-medium">Total Monthly</h4>
-              <p className="text-2xl lg:text-3xl font-bold text-emerald-400">${totalMonthly.toFixed(2)}</p>
+        <div className="flex flex-wrap justify-around items-center w-full md:w-auto gap-4">
+          {currencyEntries.map(([currency, totals]) => (
+            <div key={currency} className="text-center">
+              <h4 className="text-slate-400 text-sm font-medium">Total {currency}</h4>
+              <div className="flex flex-col md:flex-row gap-2 md:gap-4">
+                <div>
+                  <p className="text-slate-400 text-xs">Monthly</p>
+                  <p className="text-lg md:text-xl font-bold text-emerald-400">
+                    {CURRENCY_SYMBOLS[currency as Currency]}{totals.monthly.toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs">Annual</p>
+                  <p className="text-lg md:text-xl font-bold text-emerald-400">
+                    {CURRENCY_SYMBOLS[currency as Currency]}{totals.annual.toFixed(2)}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="border-l border-slate-700 h-12"></div>
-            <div>
-              <h4 className="text-slate-400 text-sm font-medium">Total Annual</h4>
-              <p className="text-2xl lg:text-3xl font-bold text-emerald-400">${totalAnnual.toFixed(2)}</p>
-            </div>
+          ))}
         </div>
         <div className="w-full md:w-auto">
           <label htmlFor="sort-by" className="sr-only">Sort by</label>

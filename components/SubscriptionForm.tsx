@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Subscription, Duration } from '../types';
-import { CATEGORIES, PAYERS } from '../constants';
+import { Subscription, Duration, Currency } from '../types';
+import { CATEGORIES, PAYERS, CURRENCIES, CURRENCY_SYMBOLS } from '../constants';
 import PlusIcon from './icons/PlusIcon';
 
 interface SubscriptionFormProps {
@@ -16,6 +16,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription }) 
   const [website, setWebsite] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [duration, setDuration] = useState<Duration>(Duration.MONTHLY);
+  const [currency, setCurrency] = useState<Currency>(Currency.USD);
   const [priceInput, setPriceInput] = useState('');
 
   const [monthlyPrice, setMonthlyPrice] = useState(0);
@@ -48,6 +49,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription }) 
       duration,
       monthlyPrice,
       annualPrice,
+      currency,
     });
     // Reset form
     setName('');
@@ -57,6 +59,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription }) 
     setWebsite('');
     setStartDate(new Date().toISOString().split('T')[0]);
     setDuration(Duration.MONTHLY);
+    setCurrency(Currency.USD);
     setPriceInput('');
   };
   
@@ -105,39 +108,45 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription }) 
             </select>
           </div>
           <div>
-            <label htmlFor="price" className={labelStyle}>
-                {duration === Duration.MONTHLY ? 'Monthly Price' : 'Annual Price'}
-            </label>
-            <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">$</span>
-                <input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={priceInput}
-                    onChange={(e) => setPriceInput(e.target.value)}
-                    className={`${inputStyle} pl-7`}
-                    placeholder="0.00"
-                    required
-                />
-            </div>
+            <label htmlFor="currency" className={labelStyle}>Currency</label>
+            <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)} className={inputStyle}>
+              {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
         </div>
 
         {/* Column 4 */}
         <div className="space-y-4">
             <div>
-                <label htmlFor="monthlyPrice" className={labelStyle}>Calculated Monthly</label>
-                <input id="monthlyPrice" type="text" value={`$${monthlyPrice.toFixed(2)}`} className={`${inputStyle} bg-slate-800 cursor-not-allowed`} readOnly />
+                <label htmlFor="price" className={labelStyle}>
+                    {duration === Duration.MONTHLY ? 'Monthly Price' : 'Annual Price'}
+                </label>
+                <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">{CURRENCY_SYMBOLS[currency]}</span>
+                    <input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        value={priceInput}
+                        onChange={(e) => setPriceInput(e.target.value)}
+                        className={`${inputStyle} pl-7`}
+                        placeholder="0.00"
+                        required
+                    />
+                </div>
             </div>
             <div>
-                <label htmlFor="annualPrice" className={labelStyle}>Calculated Annually</label>
-                <input id="annualPrice" type="text" value={`$${annualPrice.toFixed(2)}`} className={`${inputStyle} bg-slate-800 cursor-not-allowed`} readOnly />
+                <label htmlFor="monthlyPrice" className={labelStyle}>Calculated Monthly</label>
+                <input id="monthlyPrice" type="text" value={`${CURRENCY_SYMBOLS[currency]}${monthlyPrice.toFixed(2)}`} className={`${inputStyle} bg-slate-800 cursor-not-allowed`} readOnly />
             </div>
         </div>
         
         {/* Row 2 */}
-        <div className="md:col-span-2 lg:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="md:col-span-2 lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label htmlFor="annualPrice" className={labelStyle}>Calculated Annually</label>
+                <input id="annualPrice" type="text" value={`${CURRENCY_SYMBOLS[currency]}${annualPrice.toFixed(2)}`} className={`${inputStyle} bg-slate-800 cursor-not-allowed`} readOnly />
+            </div>
             <div>
                 <label htmlFor="website" className={labelStyle}>Website (optional)</label>
                 <input id="website" type="url" value={website} onChange={(e) => setWebsite(e.target.value)} className={inputStyle} placeholder="https://netflix.com" />

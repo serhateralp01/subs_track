@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Subscription } from '../types';
+import { CURRENCY_SYMBOLS } from '../constants';
 import TrashIcon from './icons/TrashIcon';
 
 interface SubscriptionCardProps {
@@ -9,7 +10,7 @@ interface SubscriptionCardProps {
 }
 
 const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onDelete }) => {
-  const { id, name, category, bank, payer, website, startDate, monthlyPrice, annualPrice } = subscription;
+  const { id, name, category, bank, payer, website, startDate, monthlyPrice, annualPrice, currency } = subscription;
   
   const formattedDate = new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', {
     year: 'numeric',
@@ -43,11 +44,11 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onDel
       <div className="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
         <div className="text-left">
           <p className="text-slate-400 text-xs">Monthly</p>
-          <p className="text-lg font-semibold text-slate-100">${monthlyPrice.toFixed(2)}</p>
+          <p className="text-lg font-semibold text-slate-100">{CURRENCY_SYMBOLS[currency]}{monthlyPrice.toFixed(2)}</p>
         </div>
         <div className="text-right">
           <p className="text-slate-400 text-xs">Annually</p>
-          <p className="text-lg font-semibold text-slate-100">${annualPrice.toFixed(2)}</p>
+          <p className="text-lg font-semibold text-slate-100">{CURRENCY_SYMBOLS[currency]}{annualPrice.toFixed(2)}</p>
         </div>
         <button 
           onClick={() => onDelete(id, name)} 

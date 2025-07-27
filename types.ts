@@ -4,6 +4,12 @@ export enum Duration {
   ANNUALLY = 'Annually',
 }
 
+export enum Currency {
+  USD = 'USD',
+  EUR = 'EUR',
+  TRY = 'TRY',
+}
+
 export interface Subscription {
   id: string;
   name: string;
@@ -15,4 +21,5 @@ export interface Subscription {
   duration: Duration;
   monthlyPrice: number;
   annualPrice: number;
+  currency: Currency;
 }
