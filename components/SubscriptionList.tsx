@@ -2,6 +2,7 @@
 import React from 'react';
 import { Subscription, Currency } from '../types';
 import { CURRENCY_SYMBOLS } from '../constants';
+import { fetchExchangeRates, convertToEUR, ExchangeRates } from '../services/exchangeRates';
 import SubscriptionCard from './SubscriptionCard';
 
 interface SubscriptionListProps {
@@ -11,6 +12,9 @@ interface SubscriptionListProps {
 
 const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDelete }) => {
   const [sortBy, setSortBy] = React.useState('name-asc');
+  const [exchangeRates, setExchangeRates] = React.useState<ExchangeRates | null>(null);
+  const [isLoadingRates, setIsLoadingRates] = React.useState(false);
+  const [lastUpdateTime, setLastUpdateTime] = React.useState<Date | null>(null);
   
   // Calculate totals by currency
   const totalsByCurrency = subscriptions.reduce((acc, sub) => {
@@ -23,6 +27,54 @@ const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDe
   }, {} as Record<Currency, { monthly: number; annual: number }>);
 
   const currencyEntries = Object.entries(totalsByCurrency);
+
+  // Calculate EUR totals
+  const eurTotals = React.useMemo(() => {
+    if (!exchangeRates) return { monthly: 0, annual: 0 };
+    
+    let totalMonthlyEUR = 0;
+    let totalAnnualEUR = 0;
+    
+    subscriptions.forEach(sub => {
+      const monthlyEUR = convertToEUR(sub.monthlyPrice, sub.currency, exchangeRates);
+      const annualEUR = convertToEUR(sub.annualPrice, sub.currency, exchangeRates);
+      totalMonthlyEUR += monthlyEUR;
+      totalAnnualEUR += annualEUR;
+    });
+    
+    return { monthly: totalMonthlyEUR, annual: totalAnnualEUR };
+  }, [subscriptions, exchangeRates]);
+
+  // Fetch exchange rates on component mount
+  React.useEffect(() => {
+    const loadExchangeRates = async () => {
+      setIsLoadingRates(true);
+      try {
+        const rates = await fetchExchangeRates();
+        setExchangeRates(rates);
+        setLastUpdateTime(new Date());
+      } catch (error) {
+        console.error('Failed to load exchange rates:', error);
+      } finally {
+        setIsLoadingRates(false);
+      }
+    };
+
+    loadExchangeRates();
+  }, []);
+
+  const refreshExchangeRates = async () => {
+    setIsLoadingRates(true);
+          try {
+        const rates = await fetchExchangeRates();
+        setExchangeRates(rates);
+        setLastUpdateTime(new Date());
+      } catch (error) {
+        console.error('Failed to refresh exchange rates:', error);
+      } finally {
+        setIsLoadingRates(false);
+      }
+  };
 
   const sortedSubscriptions = React.useMemo(() => {
     const sorted = [...subscriptions];
@@ -50,19 +102,56 @@ const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDe
     <div>
       <div className="bg-slate-800 p-4 rounded-xl shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center sticky top-4 z-10 backdrop-blur-sm bg-slate-800/80 gap-4">
         <div className="flex flex-wrap justify-around items-center w-full md:w-auto gap-4">
+          {/* EUR Total (Converted) */}
+          <div className="text-center bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <h4 className="text-emerald-400 text-sm font-medium">
+                Total EUR (Converted)
+              </h4>
+              <button
+                onClick={refreshExchangeRates}
+                disabled={isLoadingRates}
+                className="text-emerald-400 hover:text-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh exchange rates"
+              >
+                {isLoadingRates ? '🔄' : '🔄'}
+              </button>
+            </div>
+                          <div className="flex flex-col md:flex-row gap-2 md:gap-4">
+                <div>
+                  <p className="text-slate-400 text-xs">Monthly</p>
+                  <p className="text-lg md:text-xl font-bold text-emerald-400">
+                    €{eurTotals.monthly.toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs">Annual</p>
+                  <p className="text-lg md:text-xl font-bold text-emerald-400">
+                    €{eurTotals.annual.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              {lastUpdateTime && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Updated: {lastUpdateTime.toLocaleTimeString()}
+                </p>
+              )}
+          </div>
+          
+          {/* Individual Currency Totals */}
           {currencyEntries.map(([currency, totals]) => (
             <div key={currency} className="text-center">
               <h4 className="text-slate-400 text-sm font-medium">Total {currency}</h4>
               <div className="flex flex-col md:flex-row gap-2 md:gap-4">
                 <div>
                   <p className="text-slate-400 text-xs">Monthly</p>
-                  <p className="text-lg md:text-xl font-bold text-emerald-400">
+                  <p className="text-lg md:text-xl font-bold text-slate-100">
                     {CURRENCY_SYMBOLS[currency as Currency]}{totals.monthly.toFixed(2)}
                   </p>
                 </div>
                 <div>
                   <p className="text-slate-400 text-xs">Annual</p>
-                  <p className="text-lg md:text-xl font-bold text-emerald-400">
+                  <p className="text-lg md:text-xl font-bold text-slate-100">
                     {CURRENCY_SYMBOLS[currency as Currency]}{totals.annual.toFixed(2)}
                   </p>
                 </div>
