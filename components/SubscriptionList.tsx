@@ -8,9 +8,10 @@ import SubscriptionCard from './SubscriptionCard';
 interface SubscriptionListProps {
   subscriptions: Subscription[];
   onDelete: (id: string, name: string) => void;
+  onEdit: (id: string, updatedSubscription: Omit<Subscription, 'id'>) => void;
 }
 
-const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDelete }) => {
+const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDelete, onEdit }) => {
   const [sortBy, setSortBy] = React.useState('name-asc');
   const [exchangeRates, setExchangeRates] = React.useState<ExchangeRates | null>(null);
   const [isLoadingRates, setIsLoadingRates] = React.useState(false);
@@ -185,7 +186,7 @@ const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDe
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {sortedSubscriptions.map(sub => (
-            <SubscriptionCard key={sub.id} subscription={sub} onDelete={onDelete} />
+            <SubscriptionCard key={sub.id} subscription={sub} onDelete={onDelete} onEdit={onEdit} />
           ))}
         </div>
       )}

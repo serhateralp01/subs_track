@@ -6,21 +6,26 @@ import PlusIcon from './icons/PlusIcon';
 
 interface SubscriptionFormProps {
   addSubscription: (subscription: Omit<Subscription, 'id'>) => void;
+  initialData?: Subscription;
+  isEditing?: boolean;
 }
 
-const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription }) => {
-  const [name, setName] = useState('');
-  const [bank, setBank] = useState('');
-  const [category, setCategory] = useState(CATEGORIES[0]);
-  const [payer, setPayer] = useState(PAYERS[0]);
-  const [website, setWebsite] = useState('');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [duration, setDuration] = useState<Duration>(Duration.MONTHLY);
-  const [currency, setCurrency] = useState<Currency>(Currency.USD);
-  const [priceInput, setPriceInput] = useState('');
+const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription, initialData, isEditing = false }) => {
+  const [name, setName] = useState(initialData?.name || '');
+  const [bank, setBank] = useState(initialData?.bank || '');
+  const [category, setCategory] = useState(initialData?.category || CATEGORIES[0]);
+  const [payer, setPayer] = useState(initialData?.payer || PAYERS[0]);
+  const [website, setWebsite] = useState(initialData?.website || '');
+  const [startDate, setStartDate] = useState(initialData?.startDate || new Date().toISOString().split('T')[0]);
+  const [duration, setDuration] = useState<Duration>(initialData?.duration || Duration.MONTHLY);
+  const [currency, setCurrency] = useState<Currency>(initialData?.currency || Currency.USD);
+  const [priceInput, setPriceInput] = useState(initialData ? 
+    (initialData.duration === Duration.MONTHLY ? initialData.monthlyPrice.toString() : initialData.annualPrice.toString()) 
+    : ''
+  );
 
-  const [monthlyPrice, setMonthlyPrice] = useState(0);
-  const [annualPrice, setAnnualPrice] = useState(0);
+  const [monthlyPrice, setMonthlyPrice] = useState(initialData?.monthlyPrice || 0);
+  const [annualPrice, setAnnualPrice] = useState(initialData?.annualPrice || 0);
 
   useEffect(() => {
     const price = parseFloat(priceInput) || 0;
@@ -51,16 +56,18 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription }) 
       annualPrice,
       currency,
     });
-    // Reset form
-    setName('');
-    setBank('');
-    setCategory(CATEGORIES[0]);
-    setPayer(PAYERS[0]);
-    setWebsite('');
-    setStartDate(new Date().toISOString().split('T')[0]);
-    setDuration(Duration.MONTHLY);
-    setCurrency(Currency.USD);
-    setPriceInput('');
+    // Reset form only if not editing
+    if (!isEditing) {
+      setName('');
+      setBank('');
+      setCategory(CATEGORIES[0]);
+      setPayer(PAYERS[0]);
+      setWebsite('');
+      setStartDate(new Date().toISOString().split('T')[0]);
+      setDuration(Duration.MONTHLY);
+      setCurrency(Currency.USD);
+      setPriceInput('');
+    }
   };
   
   const inputStyle = "w-full bg-slate-700 border border-slate-600 rounded-md py-2 px-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition";
@@ -68,7 +75,9 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription }) 
 
   return (
     <div className="bg-slate-800 p-6 rounded-xl shadow-lg mb-8">
-      <h2 className="text-2xl font-bold text-emerald-400 mb-6">Add New Subscription</h2>
+      <h2 className="text-2xl font-bold text-emerald-400 mb-6">
+        {isEditing ? 'Edit Subscription' : 'Add New Subscription'}
+      </h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Column 1 */}
         <div className="space-y-4">
@@ -160,7 +169,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription }) 
         <div className="md:col-span-2 lg:col-span-4">
           <button type="submit" className="w-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-lg transform hover:scale-105">
             <PlusIcon className="w-5 h-5 mr-2" />
-            Add Subscription
+            {isEditing ? 'Update Subscription' : 'Add Subscription'}
           </button>
         </div>
       </form>

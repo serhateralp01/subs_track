@@ -38,6 +38,12 @@ const App: React.FC = () => {
     }
   };
 
+  const editSubscription = (id: string, updatedSubscription: Omit<Subscription, 'id'>) => {
+    setSubscriptions(prev => prev.map(sub => 
+      sub.id === id ? { ...updatedSubscription, id } : sub
+    ));
+  };
+
   return (
     <div className="min-h-screen">
       <header className="py-6">
@@ -48,7 +54,11 @@ const App: React.FC = () => {
       </header>
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <SubscriptionForm addSubscription={addSubscription} />
-        <SubscriptionList subscriptions={subscriptions} onDelete={deleteSubscription} />
+        <SubscriptionList 
+          subscriptions={subscriptions} 
+          onDelete={deleteSubscription}
+          onEdit={editSubscription}
+        />
       </main>
       <footer className="text-center py-6 text-slate-500 text-sm">
         <p>Built with React & Tailwind CSS.</p>
