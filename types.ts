@@ -18,6 +18,8 @@ export interface Subscription {
   payer: string;
   website: string;
   startDate: string;
+  lastPaymentDate: string; // Track when last payment was made
+  nextPaymentDate: string; // Automatically calculated next payment date
   duration: Duration;
   monthlyPrice: number;
   annualPrice: number;

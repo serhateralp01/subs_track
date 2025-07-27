@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Subscription } from '../types';
 import { CURRENCY_SYMBOLS } from '../constants';
+import { calculateDaysUntilPayment } from '../services/dateUtils';
 import TrashIcon from './icons/TrashIcon';
 import EditIcon from './icons/EditIcon';
 import EditModal from './EditModal';
@@ -17,30 +18,14 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onDel
   const { id, name, category, bank, payer, website, startDate, monthlyPrice, annualPrice, currency } = subscription;
   const [isEditing, setIsEditing] = useState(false);
   
-  const formattedDate = new Date(startDate + 'T00:00:00').toLocaleDateString('en-US', {
+  const formattedDate = new Date(subscription.nextPaymentDate + 'T00:00:00').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 
-  // Calculate days until next payment
-  const calculateDaysUntilPayment = () => {
-    const today = new Date();
-    const nextPaymentDate = new Date(startDate + 'T00:00:00');
-    
-    // If the payment date has passed, calculate next payment based on duration
-    if (nextPaymentDate < today) {
-      const duration = subscription.duration;
-      const daysToAdd = duration === 'Monthly' ? 30 : 365;
-      nextPaymentDate.setDate(nextPaymentDate.getDate() + daysToAdd);
-    }
-    
-    const timeDiff = nextPaymentDate.getTime() - today.getTime();
-    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    return daysDiff;
-  };
-
-  const daysUntilPayment = calculateDaysUntilPayment();
+  // Calculate days until next payment using the utility function
+  const daysUntilPayment = calculateDaysUntilPayment(subscription);
 
   const handleEdit = (updatedSubscription: Omit<Subscription, 'id'>) => {
     onEdit(id, updatedSubscription);
@@ -78,7 +63,7 @@ const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onDel
           
           {/* Progress Bar */}
           <div className="mb-4">
-            <ProgressBar daysUntilPayment={daysUntilPayment} />
+            <ProgressBar daysUntilPayment={daysUntilPayment} duration={subscription.duration} />
           </div>
         </div>
         

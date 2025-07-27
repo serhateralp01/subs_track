@@ -3,6 +3,7 @@ import React from 'react';
 import { Subscription, Currency } from '../types';
 import { CURRENCY_SYMBOLS } from '../constants';
 import { fetchExchangeRates, convertToEUR, ExchangeRates } from '../services/exchangeRates';
+import { calculateDaysUntilPayment } from '../services/dateUtils';
 import SubscriptionCard from './SubscriptionCard';
 
 interface SubscriptionListProps {
@@ -82,16 +83,7 @@ const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscriptions, onDe
     sorted.sort((a, b) => {
       // Helper function to calculate days until payment
       const getDaysUntilPayment = (subscription: Subscription) => {
-        const today = new Date();
-        const nextPaymentDate = new Date(subscription.startDate + 'T00:00:00');
-        
-        if (nextPaymentDate < today) {
-          const daysToAdd = subscription.duration === 'Monthly' ? 30 : 365;
-          nextPaymentDate.setDate(nextPaymentDate.getDate() + daysToAdd);
-        }
-        
-        const timeDiff = nextPaymentDate.getTime() - today.getTime();
-        return Math.ceil(timeDiff / (1000 * 3600 * 24));
+        return calculateDaysUntilPayment(subscription);
       };
 
       switch (sortBy) {

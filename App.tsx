@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Subscription } from './types';
+import { updatePaymentDates } from './services/dateUtils';
 import SubscriptionForm from './components/SubscriptionForm';
 import SubscriptionList from './components/SubscriptionList';
 
@@ -23,10 +24,39 @@ const App: React.FC = () => {
     }
   }, [subscriptions]);
 
+  // Auto-update payment dates when component mounts
+  useEffect(() => {
+    const updatedSubscriptions = subscriptions.map(subscription => 
+      updatePaymentDates(subscription)
+    );
+    
+    // Only update if there are changes
+    const hasChanges = updatedSubscriptions.some((updated, index) => 
+      updated.nextPaymentDate !== subscriptions[index].nextPaymentDate
+    );
+    
+    if (hasChanges) {
+      setSubscriptions(updatedSubscriptions);
+    }
+  }, []);
+
   const addSubscription = (subscriptionData: Omit<Subscription, 'id'>) => {
+    const today = new Date().toISOString().split('T')[0];
+    const startDate = subscriptionData.startDate;
+    
+    // Calculate next payment date based on duration
+    const nextPaymentDate = new Date(startDate);
+    if (subscriptionData.duration === 'Monthly') {
+      nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+    } else {
+      nextPaymentDate.setFullYear(nextPaymentDate.getFullYear() + 1);
+    }
+    
     const newSubscription: Subscription = {
       ...subscriptionData,
       id: new Date().getTime().toString(),
+      lastPaymentDate: startDate,
+      nextPaymentDate: nextPaymentDate.toISOString().split('T')[0],
     };
     // Sorting is now handled in the list component
     setSubscriptions(prev => [newSubscription, ...prev]);

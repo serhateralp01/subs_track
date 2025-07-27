@@ -1,31 +1,20 @@
 import React from 'react';
+import { Duration } from '../types';
+import { getProgressBarConfig } from '../services/dateUtils';
 
 interface ProgressBarProps {
   daysUntilPayment: number;
+  duration: Duration;
   className?: string;
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = ({ daysUntilPayment, className = "" }) => {
-  // Calculate progress percentage (31 days = 100%, 0 days = 0%)
-  const maxDays = 31;
+const ProgressBar: React.FC<ProgressBarProps> = ({ daysUntilPayment, duration, className = "" }) => {
+  // Calculate progress percentage based on duration
+  const maxDays = duration === Duration.ANNUALLY ? 365 : 31;
   const progress = Math.max(0, Math.min(100, ((maxDays - daysUntilPayment) / maxDays) * 100));
   
-  // Determine color based on days remaining
-  const getColorClasses = (days: number) => {
-    if (days >= 15 && days <= 31) return 'bg-blue-500'; // Blue: 31-15 days
-    if (days >= 10 && days <= 14) return 'bg-green-500'; // Green: 14-10 days
-    if (days >= 3 && days <= 9) return 'bg-orange-500'; // Orange: 9-3 days
-    if (days >= 0 && days <= 2) return 'bg-red-500'; // Red: 2-0 days
-    return 'bg-slate-500'; // Default for overdue
-  };
-
-  const getTextColor = (days: number) => {
-    if (days >= 15 && days <= 31) return 'text-blue-400';
-    if (days >= 10 && days <= 14) return 'text-green-400';
-    if (days >= 3 && days <= 9) return 'text-orange-400';
-    if (days >= 0 && days <= 2) return 'text-red-400';
-    return 'text-slate-400';
-  };
+  // Get color configuration based on duration and days
+  const { color: colorClasses, textColor } = getProgressBarConfig(daysUntilPayment, duration);
 
   const getStatusText = (days: number) => {
     if (days < 0) return 'Overdue';
@@ -34,8 +23,6 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ daysUntilPayment, className =
     return `${days} days left`;
   };
 
-  const colorClasses = getColorClasses(daysUntilPayment);
-  const textColor = getTextColor(daysUntilPayment);
   const statusText = getStatusText(daysUntilPayment);
 
   return (
