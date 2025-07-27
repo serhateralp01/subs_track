@@ -74,11 +74,13 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription, in
   const labelStyle = "block text-sm font-medium text-slate-400 mb-1";
 
   return (
-    <div className="bg-slate-800 p-6 rounded-xl shadow-lg mb-8">
-      <h2 className="text-2xl font-bold text-emerald-400 mb-6">
-        {isEditing ? 'Edit Subscription' : 'Add New Subscription'}
-      </h2>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className={`${isEditing ? '' : 'bg-slate-800 p-6 rounded-xl shadow-lg mb-8'}`}>
+      {!isEditing && (
+        <h2 className="text-2xl font-bold text-emerald-400 mb-6">
+          Add New Subscription
+        </h2>
+      )}
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {/* Column 1 */}
         <div className="space-y-4">
           <div>
@@ -166,7 +168,7 @@ const SubscriptionForm: React.FC<SubscriptionFormProps> = ({ addSubscription, in
             </div>
         </div>
         
-        <div className="md:col-span-2 lg:col-span-4">
+        <div className="md:col-span-2 lg:col-span-3 xl:col-span-4">
           <button type="submit" className="w-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-lg transform hover:scale-105">
             <PlusIcon className="w-5 h-5 mr-2" />
             {isEditing ? 'Update Subscription' : 'Add Subscription'}
