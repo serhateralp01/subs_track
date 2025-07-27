@@ -10,7 +10,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/subscription-tracker.git
+git remote add origin https://github.com/serhateralp01/subs_track.git
 git push -u origin main
 ```
 
@@ -21,7 +21,7 @@ git push -u origin main
 4. Under **Source**, select **GitHub Actions**
 5. Your app will automatically deploy on every push to main branch
 
-**Your app will be live at:** `https://YOUR_USERNAME.github.io/subscription-tracker/`
+**Your app will be live at:** `https://serhateralp01.github.io/subs_track/`
 
 ## Option 2: Netlify (Free tier)
 
