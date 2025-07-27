@@ -1,5 +1,5 @@
 
-import React, 'react';
+import React from 'react';
 import { Subscription } from '../types';
 import SubscriptionCard from './SubscriptionCard';
 
